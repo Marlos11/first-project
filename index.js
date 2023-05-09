@@ -10,19 +10,39 @@ Metodos HTTP
 - GET => Buscar unformacoes no back-end 
 -POST => Criar informacoes no back-end 
 -PUT/PATCH => alterar/atualizar informacoes no back- end  
--DELETE => deletar informacoes no back-end*/
+-DELETE => deletar informacoes no back-end 
+
+-MIDDLEWARE =>  INTERCEPTADOR = tem o poder de parar o alterar dados da minha requiscao 
+
+
+*/
 
 
 
 
 
+
+const CheckUserId =  (request,response,next)=>{
+    const{id}= request.params 
+    const index = users.findIndex(user => user.id === id )   
+    
+    if(index <0){
+        return response.status(404).json({message:"USER NOT FOUND"})
+    } 
+
+    request.userIndex = index 
+    request.UserId = id 
+
+    next()
+
+}
 
 
 const { request } = require("express")
 const express = require('express')
 const uuid = require('uuid')
 
-const port = 3000
+const port = 3002
 const app = express()
 app.use(express.json())
 
@@ -49,39 +69,33 @@ app.post('/user', (request,response)=>{
     
 }) 
 
-app.put('/user/:id', (request,response)=>{ 
-    const{id}= request.params
+app.put('/user/:id',CheckUserId, (request,response)=>{ 
+   
     const {name,age} = request.body
+    const index = request.userIndex
+    const id = request.UserId 
+   
                                                                             /*FIND = econtra a informcao solicitada no array e retronar a informcao */ 
                                                                             /* FINDINDEX = Ele retorna a posicao da informcao que foi solicitado. Caso nao foi encontrado a informacao 
                                                                             ele retona -1 */ 
-    
-    
-    const updateUsers = {id,name,age}   
-    const index = users.findIndex(user => user.id === id )   
-    
-    if(index <0){
-        return response.status(404).json({message:"USER NOT FOUND"})
-    }
+    const updateUsers = {id,name,age} 
     
     users[index] = updateUsers 
 
     return response.json( updateUsers ) 
 }) 
 
-app.delete('/user/:id', (request,response)=>{ 
+app.delete('/user/:id', CheckUserId,(request,response)=>{ 
     
-    const {id} = request.params
+    const index = request.userIndex
     
-    const index = users.findIndex(user => user.id === id )   
-
-    if(index <0){
+     users.splice(index,1)
+    
         return response.status(204).json()
-    }
+    })
     
-    users.splice(index,1)
-    
-}) 
+   
+
 
 
 
